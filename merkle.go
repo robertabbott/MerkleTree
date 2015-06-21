@@ -31,15 +31,26 @@ func BuildTree(mt *MerkleTree, data [][]byte) int {
 }
 
 func CompareTrees(mt1, mt2 *MerkleTree) bool {
-	n1 := mt1.Root
-	n2 := mt2.Root
+	if mt1.TreeHeight != mt2.TreeHeight {
+		return false
+	}
+	q1 := []*Node{mt1.Root}
+	q2 := []*Node{mt2.Root}
 
-	// perform bfs, if nodes != return false
+	for len(q1) > 0 {
+		if q1[0] != q2[0] {
+			return false
+		}
+		q1 = updateQueue(q1)
+		q2 = updateQueue(q2)
+	}
+
 	return true
 }
 
 func FindDiff(mt1, mt2 *MerkleTree) *MerkleTree {
 	// return subtree where two trees differ
+
 }
 
 func GenerateLeaves(data [][]byte) []*Node {
@@ -52,6 +63,20 @@ func GenerateLeaves(data [][]byte) []*Node {
 		leaves = append(leaves, node)
 	}
 	return leaves
+}
+
+func updateQueue(q []*Node) []*Node {
+	if q[0].Left != nil {
+		q = append(q, q[0].Left)
+	}
+	if q[0].Right != nil {
+		q = append(q, q[0].Right)
+	}
+	if len(q) > 1 {
+		return q[1:]
+	} else {
+		return []*Node{}
+	}
 }
 
 func levelUp(nodes []*Node) []*Node {
