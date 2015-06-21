@@ -40,7 +40,7 @@ func CompareTrees(mt1, mt2 *MerkleTree) bool {
 	q2 := []*Node{mt2.Root}
 
 	for len(q1) > 0 {
-		if q1[0] != q2[0] {
+		if CmpByteArr(q1[0].DataHash, q2[0].DataHash) == false {
 			return false
 		}
 		q1 = updateQueue(q1)
@@ -130,4 +130,16 @@ func printNodeArr(nodes []*Node) {
 	for _, node := range nodes {
 		fmt.Println(node.DataHash)
 	}
+}
+
+func CmpByteArr(a []byte, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
 }

@@ -8,6 +8,30 @@ import (
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
+func TestCompareTrees(t *testing.T) {
+	var data [][]byte
+	var d2, d3 [][]byte
+	for i := 0; i < 5; i++ {
+		data = append(data, randByteArr(16))
+		d2 = append(d2, randByteArr(16))
+	}
+	d3 = d2
+	d3[0] = []byte("seamus")
+	t1 := BuildTree(data)
+	t2 := BuildTree(data)
+	t3 := BuildTree(d2) // totally different from t1
+	t4 := BuildTree(d3) // only slightly different from t1
+	if CompareTrees(t1, t2) == false {
+		t.Fatalf("Trees are identical but compare trees returned false")
+	}
+	if CompareTrees(t1, t3) == true {
+		t.Fatalf("Trees are identical but compare trees returned false")
+	}
+	if CompareTrees(t1, t4) == true {
+		t.Fatalf("Trees are identical but compare trees returned false")
+	}
+}
+
 func TestBuildTreeEven(t *testing.T) {
 	var data [][]byte
 	for i := 0; i < 4; i++ {
@@ -18,7 +42,7 @@ func TestBuildTreeEven(t *testing.T) {
 	for index, val := range data {
 		sum := md5.Sum(val)
 		if CmpByteArr(sum[:], nodes[index].DataHash) == false {
-			t.Errorf("tree wasn't built correctly")
+			t.Fatalf("tree wasn't built correctly")
 		}
 	}
 }
@@ -36,18 +60,6 @@ func TestBuildTreeOdd(t *testing.T) {
 			t.Fatalf("tree wasn't built correctly")
 		}
 	}
-}
-
-func CmpByteArr(a []byte, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
 }
 
 func randSeq(n int) string {
