@@ -1,7 +1,8 @@
-package merkleTree
+package merkle
 
 import (
 	"crypto/md5"
+	"fmt"
 )
 
 type MerkleTree struct {
@@ -15,7 +16,7 @@ type Node struct {
 	Right    *Node
 }
 
-func BuildTree(mt *MerkleTree, data [][]byte) int {
+func BuildTree(data [][]byte) *MerkleTree {
 	var height uint
 
 	height = 1
@@ -24,10 +25,11 @@ func BuildTree(mt *MerkleTree, data [][]byte) int {
 		nodes = levelUp(nodes)
 		height += 1
 	}
-	mt.Root = nodes[0]
-	mt.TreeHeight = height
-
-	return 0
+	mt := &MerkleTree{
+		Root:       nodes[0],
+		TreeHeight: height,
+	}
+	return mt
 }
 
 func CompareTrees(mt1, mt2 *MerkleTree) bool {
@@ -48,10 +50,10 @@ func CompareTrees(mt1, mt2 *MerkleTree) bool {
 	return true
 }
 
-func FindDiff(mt1, mt2 *MerkleTree) *MerkleTree {
-	// return subtree where two trees differ
-
-}
+//func FindDiff(mt1, mt2 *MerkleTree) *MerkleTree {
+//	// return subtree where two trees differ
+//
+//}
 
 func GenerateLeaves(data [][]byte) []*Node {
 	var leaves []*Node
@@ -61,6 +63,29 @@ func GenerateLeaves(data [][]byte) []*Node {
 			DataHash: hash[:],
 		}
 		leaves = append(leaves, node)
+	}
+	return leaves
+}
+
+func getLeaves(t *MerkleTree) []*Node {
+	var leaves []*Node
+	q := []*Node{t.Root}
+
+	for len(q) > 0 {
+		if q[0].Left == nil && q[0].Right == nil {
+			leaves = append(leaves, q[0])
+		}
+		if q[0].Left != nil {
+			q = append(q, q[0].Left)
+		}
+		if q[0].Right != nil {
+			q = append(q, q[0].Right)
+		}
+		if len(q) > 0 {
+			q = q[1:]
+		} else {
+			q = []*Node{}
+		}
 	}
 	return leaves
 }
@@ -82,17 +107,27 @@ func updateQueue(q []*Node) []*Node {
 func levelUp(nodes []*Node) []*Node {
 	var nextLevel []*Node
 	for i := 0; i < len(nodes)/2; i++ {
-		data := append(nodes[i].DataHash, nodes[i+1].DataHash...)
+		data := append(nodes[i*2].DataHash, nodes[i*2+1].DataHash...)
 		hash := md5.Sum(data)
 		node := &Node{
 			DataHash: hash[:],
-			Left:     nodes[i],
-			Right:    nodes[i+1],
+			Left:     nodes[i*2],
+			Right:    nodes[i*2+1],
 		}
 		nextLevel = append(nextLevel, node)
 	}
 	if len(nodes)%2 == 1 {
-		nextLevel = append(nextLevel, nodes[len(nodes)-1])
+		node := &Node{
+			DataHash: nodes[len(nodes)-1].DataHash,
+			Right:    nodes[len(nodes)-1],
+		}
+		nextLevel = append(nextLevel, node)
 	}
 	return nextLevel
+}
+
+func printNodeArr(nodes []*Node) {
+	for _, node := range nodes {
+		fmt.Println(node.DataHash)
+	}
 }
