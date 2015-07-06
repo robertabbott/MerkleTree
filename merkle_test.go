@@ -8,6 +8,25 @@ import (
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
+func TestFindDiff(t *testing.T) {
+
+}
+
+func TestTreeFromData(t *testing.T) {
+	var data []byte
+	var dataPieces [][]byte
+	pieces := 4
+	data = randByteArr(36)
+	for i := 0; i < pieces; i++ {
+		dataPieces = append(dataPieces, data[i*9:(1+i)*9])
+	}
+	t1 := TreeFromData(data, pieces)
+	t2 := BuildTree(dataPieces)
+	if CompareTrees(t1, t2) == false {
+		t.Fatalf("TreeFromData did not build tree correctly")
+	}
+}
+
 func TestCompareTrees(t *testing.T) {
 	var data [][]byte
 	var d2, d3 [][]byte

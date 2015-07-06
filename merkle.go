@@ -16,6 +16,16 @@ type Node struct {
 	Right    *Node
 }
 
+// splits data in n pieces and builds tree from those pieces
+func TreeFromData(data []byte, pieces int) *MerkleTree {
+	size := len(data) / pieces
+	dataPieces := [][]byte{}
+	for i := 0; i < pieces; i++ {
+		dataPieces = append(dataPieces, data[i*size:(i+1)*size])
+	}
+	return BuildTree(dataPieces)
+}
+
 func BuildTree(data [][]byte) *MerkleTree {
 	var height uint
 
@@ -50,10 +60,34 @@ func CompareTrees(mt1, mt2 *MerkleTree) bool {
 	return true
 }
 
-//func FindDiff(mt1, mt2 *MerkleTree) *MerkleTree {
-//	// return subtree where two trees differ
-//
-//}
+func FindDiff(mt1, mt2 *MerkleTree) [][]*Node {
+	var nodes [][]*Node
+	st1, st2 := TreeDiff(mt1, mt2) // return subtree where two trees differ
+	if st1.Root.Right == nil && st1.Root.Left == nil {
+		nodes = append(nodes, []*Node{st1.Root})
+	} else {
+		leftSt1 := &MerkleTree{Root: st1.Root.Left}
+		leftSt2 := &MerkleTree{Root: st2.Root.Left}
+		rightSt1 := &MerkleTree{Root: st1.Root.Left}
+		rightSt2 := &MerkleTree{Root: st2.Root.Left}
+		nodes = append(nodes, FindDiff(leftSt1, leftSt2)...)
+		nodes = append(nodes, FindDiff(rightSt1, rightSt2)...)
+	}
+	return nodes
+}
+
+func TreeDiff(mt1, mt2 *MerkleTree) (st1, st2 *MerkleTree) {
+	q1 := []*Node{mt1.Root}
+	q2 := []*Node{mt2.Root}
+	for len(q1) > 0 {
+		if CmpByteArr(q1[0].DataHash, q2[0].DataHash) == false {
+			return &MerkleTree{Root: q1[0]}, &MerkleTree{Root: q2[0]}
+		}
+		q1 = updateQueue(q1)
+		q2 = updateQueue(q2)
+	}
+	return nil, nil
+}
 
 func GenerateLeaves(data [][]byte) []*Node {
 	var leaves []*Node
